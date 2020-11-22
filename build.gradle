@@ -5,12 +5,15 @@ plugins {
 }
 
 group = 'com.training'
-version = '0.0.1-SNAPSHOT'
+version = '1.0'
 sourceCompatibility = '11'
 
 configurations {
     compileOnly {
         extendsFrom annotationProcessor
+    }
+    cucumberRuntime {
+        extendsFrom testImplementation
     }
 }
 
@@ -20,11 +23,30 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter'
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.4.0'
+    implementation group: 'io.cucumber', name: 'cucumber-java', version: '2.0.0'
+    implementation group: 'io.cucumber', name: 'cucumber-spring', version: '6.9.0'
+    implementation group: 'commons-io', name: 'commons-io', version: '2.6'
+
     compileOnly 'org.projectlombok:lombok'
+
     annotationProcessor 'org.projectlombok:lombok'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation group: 'io.cucumber', name: 'cucumber-junit', version: '6.9.0'
 }
 
 test {
     useJUnitPlatform()
+}
+
+task cucumber() {
+    dependsOn assemble, testClasses
+    doLast {
+        javaexec {
+            main = "io.cucumber.core.cli.Main"
+            classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
+            args = ['--plugin', 'pretty', '--glue', 'gradle.cucumber', 'src/test/resources']
+        }
+    }
 }
